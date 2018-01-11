@@ -87,8 +87,9 @@ class discord_bot(object):
 
 
 def main():
-    #change this if you're using it for your file
-    secrets = yaml.load(open("secrets.yml", 'r'))
+    # remember to copy secrets.yml.example and input your info
+    secret_path = "secrets.yml"
+    secrets = yaml.load(open(secret_path, 'r'))
     bot = discord_bot(secrets['BOT_TOKEN'])
 
 
