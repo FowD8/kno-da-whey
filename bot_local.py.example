@@ -1,0 +1,18 @@
+import yaml
+from bot import discord_bot
+
+
+def main():
+    # change this if you're using it for your file
+    SECRET_PATH = "C:\\Users\\<username>\\Desktop\\kno-da-whey\\secrets.yml"
+    SECRETS = yaml.load(open(SECRET_PATH, 'r'))
+    DESCRIPTION = "Enter Description"
+    COMMAND = "!"
+
+    bot = discord_bot(SECRETS['BOT_TOKEN'],
+                      DESCRIPTION,
+                      COMMAND)
+
+
+if __name__ == "__main__":
+    main()

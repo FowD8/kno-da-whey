@@ -15,8 +15,8 @@ from IPython import embed
 
 
 class discord_bot(object):
-    def __init__(self, token):
-        bot = Bot(description="testing bot by brian",command_prefix = '!')
+    def __init__(self, token, user_description, user_command_prefix):
+        bot = Bot(description = user_description, command_prefix = user_command_prefix)
         # executed when bot is ready
         @bot.event
         async def on_ready():
