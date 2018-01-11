@@ -16,4 +16,4 @@ Use `python3 bot.py` to run the bot
 
 # Output
 
-Will output 'kno Da Whey' meme
+Will output 'kno Da Whey' meme to discord.
