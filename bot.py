@@ -48,11 +48,15 @@ class discord_bot(object):
 
         #Saves whatever picture is attached with the message, as the file name
         @bot.command(pass_context = True)
-        async def save_meme(ctx):
-            file_name = ctx.message.content[11:] + ".jpg"
-            self.download_image(ctx.message.attachments[0]['url'], file_name)
-            await bot.delete_message(ctx.message)
-            message = await bot.say("Saved Meme to %s" %file_name)
+        async def save_last_meme(ctx):
+            file_name = ctx.message.content[16:] + ".jpg"
+            async for message in bot.logs_from(ctx.message.channel, limit=500):
+                if message.attachments:
+                    self.download_image(message.attachments[0]['url'], file_name)
+                    message = await bot.say("Downloaded the most recent meme to %s"%file_name)
+                    await bot.add_reaction(message, '🗑')
+                    return
+            message = await bot.say("Unable to find recent memes")
             await bot.add_reaction(message, '🗑')
 
         """Gonna work on trying to get an image recognition method working for fun
@@ -82,13 +86,9 @@ class discord_bot(object):
     #def neural_net(self):
 
 
-
-
-
 def main():
-    # remember to copy secrets.yml.example and input your info
-    secret_path = "secrets.yml"
-    secrets = yaml.load(open(secret_path, 'r'))
+    #change this if you're using it for your file
+    secrets = yaml.load(open("secrets.yml", 'r'))
     bot = discord_bot(secrets['BOT_TOKEN'])
 
 
