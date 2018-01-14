@@ -8,6 +8,8 @@ import yaml
 import tensorflow as tf
 import numpy as np
 from requests import get
+import imageio
+from scipy import misc
 
 # debugger
 # use `embed()` to breakpoint
@@ -49,7 +51,7 @@ class discord_bot(object):
         #Saves whatever picture is attached with the message, as the file name
         @bot.command(pass_context = True)
         async def save_last_meme(ctx):
-            file_name = ctx.message.content[16:] + ".jpg"
+            file_name = ctx.message.content[16:] + ".png"
             async for message in bot.logs_from(ctx.message.channel, limit=500):
                 if message.attachments:
                     self.download_image(message.attachments[0]['url'], file_name)
@@ -67,23 +69,31 @@ class discord_bot(object):
 
         @bot.command(pass_context = True)
         async def identify(ctx):
-            print(ctx.message.attachments[0]['url'])
-            self.download_image(ctx.message.attachments[0]['url'], "test.jpg")
-            message = await bot.say(ctx.message.attachments[0]['url'])
+            file_name = ctx.message.content[9:] + ".png"
+            url = ctx.message.attachments[0]['url']
+            self.identify_image(url, file_name)
+            await bot.delete_message(ctx.message)
+            message = await bot.say(url)
             await bot.add_reaction(message, '🗑')
 
         bot.run(token)
 
+    #saves image to file
     def download_image(self, url, save_file):
         with open(save_file, 'wb') as sfile:
             response = get(url)
             sfile.write(response.content)
 
+    #resizes image into a 32x32 np array
+    def resize_img(self, file_name):
+        image = imageio.imread(file_name)
+        return misc.imresize(image, (32,32))
 
+    def identify_image(self, url, file_name):
+        self.download_image(url, file_name)     #save image
+        img = self.resize_img(file_name)            #resizes image for NN input
 
-    #def identify_image(self, image):
-
-    #def neural_net(self):
+    #def neural_net(self, img):
 
 
 def main():
