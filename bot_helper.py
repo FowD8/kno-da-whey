@@ -10,14 +10,16 @@ from dateutil.parser import parse
 from IPython import embed as breakpoint
 
 class BotHelper(object):
-    bot_image = 'https://imgur.com/i3bLOXM.jpg'
-    alert_channel_id = '400128509835739147'
 
     def __init__(self, bot, db, twitch_api):
         self.bot = bot
         self.db = db
         self.twitch_api = twitch_api
         self.twitch_channels_table = self.db.table('twitch_channels')
+
+        secrets = yaml.load(open('secrets.yml', 'r'))
+        self.bot_image = secrets['BOT_IMAGE']
+        self.alert_channel_id = secrets['TWITCH_ALERT_CHANNEL_ID']
 
     """ Bot Messaging Methods """
 

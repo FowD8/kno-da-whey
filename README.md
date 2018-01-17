@@ -6,10 +6,12 @@ Discord Bot
 
 Create a `secrets.yml` file in the root directory with correct parameters
 
-| Variable         | Description                |
-|------------------|----------------------------|
-| BOT_TOKEN        | App user bot token         |
-| TWITCH_CLIENT_ID | Twitch API client_id token |
+| Variable         				| Description                					 |
+|-------------------------|--------------------------------------|
+| BOT_TOKEN        				| App user bot token         					 |
+| TWITCH_CLIENT_ID 				| Twitch API client_id token 					 |
+| TWITCH_ALERT_CHANNEL_ID | Channel ID to write Twitch alerts to |
+| BOT_IMAGE 							| URL of image to use for bot 				 |
 
 # Usage
 
@@ -26,4 +28,4 @@ Use `python3 bot.py` to run the bot
 
 # Output
 
-Will output 'kno Da Whey' meme
+Will create embed messages in specified channel to alert discord users when a user is streaming
