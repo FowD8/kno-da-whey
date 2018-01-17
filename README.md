@@ -1,6 +1,6 @@
 # Kno Da Whey
 
-Discord Bot
+<img src="https://imgur.com/i3bLOXM.jpg" width="100">
 
 # Settings
 
