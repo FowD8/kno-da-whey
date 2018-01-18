@@ -19,7 +19,7 @@ Use `python3 bot.py` to run the bot
 
 ## Commands
 
-| command                               | description                                           |
+| Command                               | Description                                           |
 |---------------------------------------|-------------------------------------------------------|
 | !twitch channel add <channel_name>    | adds twitch channel to list of channels to track      |
 | !twitch channel remove <channel_name> | removes twitch channel from list of channels to track |
