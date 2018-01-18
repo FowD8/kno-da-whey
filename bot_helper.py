@@ -5,7 +5,7 @@ from discord.ext.commands import Bot
 from tinydb import TinyDB, Query
 from twitch_api import TwitchAPI
 from dateutil.parser import parse
-
+import yaml
 # debugging
 from IPython import embed as breakpoint
 
