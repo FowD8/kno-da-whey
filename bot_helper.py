@@ -16,6 +16,7 @@ class BotHelper(object):
         self.db = db
         self.twitch_api = twitch_api
         self.twitch_channels_table = self.db.table('twitch_channels')
+        self.timeouts_table = self.db.table('timeouts')
 
         secrets = yaml.load(open('secrets.yml', 'r'))
         self.bot_image = secrets['BOT_IMAGE']
@@ -23,8 +24,8 @@ class BotHelper(object):
 
     """ Bot Messaging Methods """
 
-    async def bot_say(self, message, expiration=10, trash=True):
-        return await self._bot_to_discord(message=message, expiration=expiration, trash=trash)
+    async def bot_say(self, message, expiration=10, channel=None, trash=True):
+        return await self._bot_to_discord(message=message, expiration=expiration, channel=channel, trash=trash)
 
     async def bot_embed(self, embed=None, expiration=10, channel=None, trash=True):
         embed = self._json_to_embed(embed)
@@ -111,6 +112,34 @@ class BotHelper(object):
 
         await self.bot_embed(embed=json_embed)
 
+    """ Timeout Methods """
+
+    async def timeout_add_user(self, server, user, timeout):
+        if server.get_member(user):
+            member = server.get_member(user)
+        elif server.get_member_named(user):
+            member = server.get_member_named(user)
+        else:
+            await self.bot_say('Could not find discord user with name or ID: `{}` *(case-sensitive)*'.format(user))
+
+        if self.timeouts_table.contains(Query().id == member.id):
+            await self.bot_say('`{}` is already on the timeout list'.format(member.name))
+        else:
+            self.timeouts_table.insert({
+                'id':        member.id,
+                'name':      member.name,
+                'timestamp': str(datetime.datetime.utcnow() + datetime.timedelta(minutes=timeout))
+            })
+            await self.bot_say('added `{}` to the list users timed out'.format(member.name))
+
+    async def timeout_remove_user(self):
+        pass
+
+    async def timeout_list_users(self):
+        pass
+
+    def timeout_check_user(self, user_id):
+        return self.timeouts_table.contains(Query().id == user_id)
 
     """ """
 
@@ -253,7 +282,11 @@ class BotHelper(object):
     async def _bot_to_discord(self, message=None, embed=None, expiration=10, channel=None, trash=True):
         if channel:
             channel = await self.get_channel(channel)
-            message_in = await self.bot.send_message(channel, embed=embed)
+
+            if message:
+                message_in = await self.bot.send_message(channel, message)
+            elif embed:
+                message_in = await self.bot.send_message(channel, embed=embed)
         else:
             if message:
                 message_in = await self.bot.say(message)

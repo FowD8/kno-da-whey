@@ -50,10 +50,14 @@ class discord_bot(object):
         # filter messages
         @bot.event
         async def on_message(message):
-            # restricts bot message checks to server id 173297475057090562 (NoRobotsAllowed) and my channel
-            if (message.server.id == '173297475057090562' and message.channel.name == 'bryan2') or \
-               (message.content.startswith('!twitch channel show')):
-                # fix to allow commands to work
+            if bot_helper.timeout_check_user(message.author.id):
+                bot_helper.bot_say("{} said something".format(message.author), channel='405048275301826561', trash=False)
+
+            if message.content.startswith('!timeout') and message.author.server_permissions.administrator:
+                await bot.process_commands(message)
+            elif message.server.id == '173297475057090562' and message.channel.name == 'bryan2':
+                await bot.process_commands(message)
+            elif message.content.startswith('!twitch channel show'):
                 await bot.process_commands(message)
 
         ##########
@@ -100,8 +104,8 @@ class discord_bot(object):
             await bot_helper.twitch_remove_channel(name)
         
         # !twitch channel show <twitch_channel>
-        @channel.command(pass_context = True)
-        async def show(ctx, name: str):
+        @channel.command()
+        async def show(name: str):
             await bot_helper.twitch_show_channel(name)
 
         # !twitch channel list
@@ -109,7 +113,33 @@ class discord_bot(object):
         async def list():
             await bot_helper.twitch_list_channels()
 
-        """ Basic ping pong test"""
+        """ TIMEOUT COMMANDS """
+
+        # !timeout
+        @bot.group(pass_context = True)
+        async def timeout(ctx):
+            # remove user's command message
+            await bot_helper.delete_message(ctx.message)
+
+            if ctx.invoked_subcommand is None:
+                await bot_helper.bot_say('`{}` is an invalid command'.format(ctx.message.content))
+        
+        # !timeout add <user_id or user_name>
+        @timeout.command(pass_context = True)
+        async def add(ctx, user, timeout=30):
+            await bot_helper.timeout_add_user(ctx.message.server, user, timeout)
+
+        # !timeout remove <user_name>
+        @timeout.command()
+        async def remove():
+            await bot_helper.timeout_remove_user()
+
+        # !timeout list
+        @timeout.command()
+        async def list():
+            await bot_helper.timeout_list_users()
+
+        """ BASIC PING PONG TEST COMMAND """
         # !ping
         @bot.command(pass_context = True)
         async def ping(ctx):
