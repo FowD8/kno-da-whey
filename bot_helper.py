@@ -94,14 +94,11 @@ class BotHelper(object):
 
         stream_info = self.twitch_api.get_stream_info(user_login=name)
 
-        game_id      = stream.get('game_id')
-        stream_title = stream.get('title')
-        thumbnail    = stream.get('thumbnail_url')
-        viewer_count = stream.get('viewer_count')
-        user_id      = stream.get('user_id')
+        breakpoint()
+
+        stream_embed = self.create_stream_embed(stream_info)
 
         breakpoint()
-        pass
 
     async def twitch_list_channels(self):
         channel_names = self._all_twitch_channel_names()
