@@ -19,11 +19,12 @@ Use `python3 bot.py` to run the bot
 
 ## Commands
 
-| command                               | description                                           |
+| Command                               | Description                                           |
 |---------------------------------------|-------------------------------------------------------|
-| !twitch channel add <channel_name>    | adds twitch channel to list of channels to track      |
-| !twitch channel remove <channel_name> | removes twitch channel from list of channels to track |
-| !twitch channel list                  | list of twitch channels being tracked                 |
+| !twitch channel add <channel_name>    | adds Twitch channel to list of channels to track      |
+| !twitch channel remove <channel_name> | removes Twitch channel from list of channels to track |
+| !twitch channel list                  | list of Twitch channels being tracked                 |
+| !twitch channel show <channel_name>   | creates Twitch embed if user is streaming							|
 
 
 # Output

@@ -90,15 +90,13 @@ class BotHelper(object):
             await self.bot_say('`{}` is not on the list of twitch channels'.format(name))  
 
     async def twitch_show_channel(self, name):
-        name = name.lower()
+        stream_info = self.twitch_api.get_stream_info(user_login=name.lower())
 
-        stream_info = self.twitch_api.get_stream_info(user_login=name)
-
-        breakpoint()
-
-        stream_embed = self.create_stream_embed(stream_info)
-
-        breakpoint()
+        if stream_info:
+            stream_embed = self.create_stream_embed(stream_info)
+            await self.bot_embed(embed=stream_embed, expiration=False)
+        else:
+            await self.bot_say('Sorry, but `{}` is not currently streaming'.format(name))
 
     async def twitch_list_channels(self):
         channel_names = self._all_twitch_channel_names()
@@ -132,7 +130,8 @@ class BotHelper(object):
                 # if user is streaming on twitch
                 if db_twitch_id in twitch_streaming_user_ids:
                     for stream_info in live_streams:
-                        user_id, stream_embed = self.create_stream_embed(stream_info)
+                        user_id = stream_info.get('user_id')
+                        stream_embed = self.create_stream_embed(stream_info)
 
                         db_channel = self._get_db_channel_by_id(user_id)
                         message_id = db_channel.get('streaming_message_id')
@@ -172,7 +171,7 @@ class BotHelper(object):
 
         streamer_name = streamer_info.get('display_name')
 
-        return user_id, {
+        return {
             'description': 'https://www.twitch.tv/{}'.format(streamer_name),
             'color':       0xFF0000,
             'thumbnail': {

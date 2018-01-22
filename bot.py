@@ -51,7 +51,8 @@ class discord_bot(object):
         @bot.event
         async def on_message(message):
             # restricts bot message checks to server id 173297475057090562 (NoRobotsAllowed) and my channel
-            if message.server.id == '173297475057090562' and message.channel.name == 'bryan2':
+            if (message.server.id == '173297475057090562' and message.channel.name == 'bryan2') or \
+               (message.content.startswith('!twitch channel show')):
                 # fix to allow commands to work
                 await bot.process_commands(message)
 
@@ -99,8 +100,8 @@ class discord_bot(object):
             await bot_helper.twitch_remove_channel(name)
         
         # !twitch channel show <twitch_channel>
-        @channel.command()
-        async def show(name: str):
+        @channel.command(pass_context = True)
+        async def show(ctx, name: str):
             await bot_helper.twitch_show_channel(name)
 
         # !twitch channel list
