@@ -51,7 +51,7 @@ class discord_bot(object):
         @bot.event
         async def on_message(message):
             # restricts bot message checks to server id 173297475057090562 (NoRobotsAllowed) and my channel
-            if message.server.id == '173297475057090562' and message.channel.name == 'bryan':
+            if message.server.id == '173297475057090562' and message.channel.name == 'bryan2':
                 # fix to allow commands to work
                 await bot.process_commands(message)
 
@@ -98,6 +98,11 @@ class discord_bot(object):
         async def remove(name: str):
             await bot_helper.twitch_remove_channel(name)
         
+        # !twitch channel show <twitch_channel>
+        @channel.command()
+        async def show(name: str):
+            await bot_helper.twitch_show_channel(name)
+
         # !twitch channel list
         @channel.command()
         async def list():
@@ -112,56 +117,56 @@ class discord_bot(object):
 
 
 
-        """Gonna work on trying to get an image recognition method working for fun
-        command is gonna be !identify
-        will take in an input image and run it through a classifier and see attempt to identify image
-        Image dimensions: tbd
-        Neural network implemented in tensorflow"""
+    #     """Gonna work on trying to get an image recognition method working for fun
+    #     command is gonna be !identify
+    #     will take in an input image and run it through a classifier and see attempt to identify image
+    #     Image dimensions: tbd
+    #     Neural network implemented in tensorflow"""
 
-        #Saves last picture uploaded in the channel
-        @bot.command(pass_context = True)
-        async def save_last_meme(ctx):
-            file_name = ctx.message.content[16:] + ".png"
-            async for message in bot.logs_from(ctx.message.channel, limit=500):
-                if message.attachments:
-                    self.download_image(message.attachments[0]['url'], file_name)
-                    message = await bot.say("Downloaded the most recent meme to %s"%file_name)
-                    await bot.add_reaction(message, '🗑')
-                    return
-            message = await bot.say("Unable to find recent memes")
-            await bot.add_reaction(message, '🗑')
+    #     #Saves last picture uploaded in the channel
+    #     @bot.command(pass_context = True)
+    #     async def save_last_meme(ctx):
+    #         file_name = ctx.message.content[16:] + ".png"
+    #         async for message in bot.logs_from(ctx.message.channel, limit=500):
+    #             if message.attachments:
+    #                 self.download_image(message.attachments[0]['url'], file_name)
+    #                 message = await bot.say("Downloaded the most recent meme to %s"%file_name)
+    #                 await bot.add_reaction(message, '🗑')
+    #                 return
+    #         message = await bot.say("Unable to find recent memes")
+    #         await bot.add_reaction(message, '🗑')
 
-        """Gonna work on trying to get an image recognition method working for fun
-        command is gonna be !identify class, where !identify is the command and class is the image classification
-        will take in an input image and run it through a classifier and see attempt to identify image
-        Image dimensions: 32x32
-        Neural network implemented in tensorflow"""
+    #     """Gonna work on trying to get an image recognition method working for fun
+    #     command is gonna be !identify class, where !identify is the command and class is the image classification
+    #     will take in an input image and run it through a classifier and see attempt to identify image
+    #     Image dimensions: 32x32
+    #     Neural network implemented in tensorflow"""
 
-        @bot.command(pass_context = True)
-        async def identify(ctx):
-            file_name = str(self.counter) + ".png"
-            classification = ctx.message[9:]
-            print(classification)
-            url = ctx.message.attachments[0]['url']
-            self.identify_image(url, file_name)
-            await bot.delete_message(ctx.message)
-            message = await bot.say(url)
-            await bot.add_reaction(message, '🗑')
+    #     @bot.command(pass_context = True)
+    #     async def identify(ctx):
+    #         file_name = str(self.counter) + ".png"
+    #         classification = ctx.message[9:]
+    #         print(classification)
+    #         url = ctx.message.attachments[0]['url']
+    #         self.identify_image(url, file_name)
+    #         await bot.delete_message(ctx.message)
+    #         message = await bot.say(url)
+    #         await bot.add_reaction(message, '🗑')
 
-    #saves image to file
-    def download_image(self, url, save_file):
-        with open(save_file, 'wb') as sfile:
-            response = get(url)
-            sfile.write(response.content)
+    # #saves image to file
+    # def download_image(self, url, save_file):
+    #     with open(save_file, 'wb') as sfile:
+    #         response = get(url)
+    #         sfile.write(response.content)
 
-    #resizes image into a 32x32 np array
-    def resize_img(self, file_name):
-        image = imageio.imread(file_name)
-        return misc.imresize(image, (32,32))
+    # #resizes image into a 32x32 np array
+    # def resize_img(self, file_name):
+    #     image = imageio.imread(file_name)
+    #     return misc.imresize(image, (32,32))
 
-    def identify_image(self, url, file_name):
-        self.download_image(url, file_name)     #save image
-        img = self.resize_img(file_name)            #resizes image for NN input
+    # def identify_image(self, url, file_name):
+    #     self.download_image(url, file_name)     #save image
+    #     img = self.resize_img(file_name)            #resizes image for NN input
 
 
 
@@ -179,10 +184,10 @@ class discord_bot(object):
         bot.loop.create_task(check_twitch())
         bot.run(token)
 
-    def download_image(self, url, save_file):
-        with open(save_file, 'wb') as sfile:
-            response = get(url)
-            sfile.write(response.content)
+    # def download_image(self, url, save_file):
+    #     with open(save_file, 'wb') as sfile:
+    #         response = get(url)
+    #         sfile.write(response.content)
 
     # def identify_image(self, image):
 

@@ -68,14 +68,40 @@ class BotHelper(object):
                 await self.bot_say('could not find username `{}` on twitch'.format(name))
 
     async def twitch_remove_channel(self, name):
+        # remove all
         if name.lower() == "all":
+            streaming_message_ids = [streamer.get('streaming_message_id') for streamer in self.twitch_channels_table.all()]
+            
+            # remove all twitch alerts and purge table
+            await self.remove_stream_embed(streaming_message_ids)
             self.twitch_channels_table.purge()
+
             await self.bot_say('removed all twitch channels from the list')
+        # remove selected
         elif self.twitch_channels_table.contains(Query().name == name):
+            streaming_message_id = [streamer.get('streaming_message_id') for streamer in self.twitch_channels_table.search(Query().name == name)]
+
+            await self.remove_stream_embed(streaming_message_id)
+
             self.twitch_channels_table.remove(Query().name == name)
             await self.bot_say('removing `{}` from the list of twitch channels'.format(name)) 
+        # selected does not exist
         else:
             await self.bot_say('`{}` is not on the list of twitch channels'.format(name))  
+
+    async def twitch_show_channel(self, name):
+        name = name.lower()
+
+        stream_info = self.twitch_api.get_stream_info(user_login=name)
+
+        game_id      = stream.get('game_id')
+        stream_title = stream.get('title')
+        thumbnail    = stream.get('thumbnail_url')
+        viewer_count = stream.get('viewer_count')
+        user_id      = stream.get('user_id')
+
+        breakpoint()
+        pass
 
     async def twitch_list_channels(self):
         channel_names = self._all_twitch_channel_names()
@@ -89,6 +115,7 @@ class BotHelper(object):
         }
 
         await self.bot_embed(embed=json_embed)
+
 
     """ """
 
@@ -107,87 +134,95 @@ class BotHelper(object):
 
                 # if user is streaming on twitch
                 if db_twitch_id in twitch_streaming_user_ids:
-                    for stream in live_streams:
-                        game_id      = stream.get('game_id')
-                        stream_title = stream.get('title')
-                        thumbnail    = stream.get('thumbnail_url')
-                        viewer_count = stream.get('viewer_count')
-                        user_id      = stream.get('user_id')
-
-                        game = self.twitch_api.get_game_info(id=game_id)
-
-                        game_boxart = game.get('box_art_url')
-                        game_name   = game.get('name')
-
-                        followers_count = self.twitch_api.get_followers_count(user_id)
-
-                        streamer_info = self.twitch_api.get_user_info(id=user_id)
-
-                        streamer_name = streamer_info.get('display_name')
-
-                        json_embed = {
-                            'description': 'https://www.twitch.tv/{}'.format(streamer_name),
-                            'color':       0xFF0000,
-                            'thumbnail': {
-                                'url': game_boxart.replace('{width}', '240').replace('{height}', '336')
-                            },
-                            'image': {
-                                'url': thumbnail.replace('{width}', '960').replace('{height}', '540')
-                            },
-                            'author': {
-                                'name':     '{} is now streaming!'.format(streamer_name),
-                                'icon_url': 'https://imgur.com/waJ7gpJ.jpg'
-                            },
-                            'fields': [
-                                {
-                                    'name':  'Now Playing',
-                                    'value': game_name
-                                },
-                                {
-                                    'name':  'Stream Title',
-                                    'value': stream_title
-                                },
-                                {
-                                    'name':   'Current Viewers',
-                                    'value':  viewer_count,
-                                    'inline': True
-                                },
-                                {
-                                    'name':   'Followers',
-                                    'value':  followers_count,
-                                    'inline': True
-                                }
-                            ]
-                        }
+                    for stream_info in live_streams:
+                        user_id, stream_embed = self.create_stream_embed(stream_info)
 
                         db_channel = self._get_db_channel_by_id(user_id)
                         message_id = db_channel.get('streaming_message_id')
 
                         # update stream message
                         if message_id:
-                            await self.update_embed(embed=json_embed, channel=self.alert_channel_id, message_id=message_id)
+                            await self.update_embed(embed=stream_embed, channel=self.alert_channel_id, message_id=message_id)
 
                         # create new stream message
                         else:
-                            message = await self.bot_embed(embed=json_embed, expiration=False, channel=self.alert_channel_id, trash=False)
+                            message = await self.bot_embed(embed=stream_embed, expiration=False, channel=self.alert_channel_id, trash=False)
                             
                             # update database with message id
                             self.twitch_channels_table.update({'streaming_message_id': message.id}, Query().id == user_id)
                 # user is not stremaing on twitch
                 else:
-                    if db_twitch_streaming_message_id:
-                        # remove message
-                        channel = await self.get_channel(self.alert_channel_id)
-                        try:
-                            message = await self.bot.get_message(channel, db_twitch_streaming_message_id)
-                            await self.delete_message(message)
-                        except Exception as e:
-                            print(e)
-                        
-                        self.twitch_channels_table.update({'streaming_message_id': None}, Query().id == db_twitch_id)
+                    await self.remove_stream_embed(db_twitch_streaming_message_id)
 
         except Exception as e:
             print(e)
+
+    def create_stream_embed(self, stream_info):
+        game_id      = stream_info.get('game_id')
+        stream_title = stream_info.get('title')
+        thumbnail    = stream_info.get('thumbnail_url')
+        viewer_count = stream_info.get('viewer_count')
+        user_id      = stream_info.get('user_id')
+
+        game = self.twitch_api.get_game_info(id=game_id)
+
+        game_boxart = game.get('box_art_url')
+        game_name   = game.get('name')
+
+        followers_count = self.twitch_api.get_followers_count(user_id)
+
+        streamer_info = self.twitch_api.get_user_info(id=user_id)
+
+        streamer_name = streamer_info.get('display_name')
+
+        return user_id, {
+            'description': 'https://www.twitch.tv/{}'.format(streamer_name),
+            'color':       0xFF0000,
+            'thumbnail': {
+                'url': game_boxart.replace('{width}', '240').replace('{height}', '336')
+            },
+            'image': {
+                'url': thumbnail.replace('{width}', '960').replace('{height}', '540')
+            },
+            'author': {
+                'name':     '{} is now streaming!'.format(streamer_name),
+                'icon_url': 'https://imgur.com/waJ7gpJ.jpg'
+            },
+            'fields': [
+                {
+                    'name':  'Now Playing',
+                    'value': game_name
+                },
+                {
+                    'name':  'Stream Title',
+                    'value': stream_title
+                },
+                {
+                    'name':   'Current Viewers',
+                    'value':  viewer_count,
+                    'inline': True
+                },
+                {
+                    'name':   'Followers',
+                    'value':  followers_count,
+                    'inline': True
+                }
+            ]
+        }
+
+    async def remove_stream_embed(self, streaming_message_id):
+        if type(streaming_message_id) == str:
+            streaming_message_id = [streaming_message_id]
+
+        for message_id in streaming_message_id:
+            if message_id:
+                # remove twitch alert
+                channel = await self.get_channel(self.alert_channel_id)
+                message = await self.bot.get_message(channel, message_id)
+                await self.delete_message(message)
+
+                # remove message_id from database
+                self.twitch_channels_table.update({'streaming_message_id': None}, Query().streaming_message_id == message_id)
 
     """ Misc Methods """
 
