@@ -199,7 +199,7 @@ class BotHelper(object):
                 },
                 {
                     'name':   'Current Viewers',
-                    'value':  viewer_count,
+                    'value':  self.clean_number(viewer_count),
                     'inline': True
                 },
                 {
@@ -211,7 +211,7 @@ class BotHelper(object):
         }
 
     async def remove_stream_embed(self, streaming_message_id):
-        if type(streaming_message_id) == str:
+        if type(streaming_message_id) is str or streaming_message_id == None:
             streaming_message_id = [streaming_message_id]
 
         for message_id in streaming_message_id:
