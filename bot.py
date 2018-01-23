@@ -57,7 +57,7 @@ class discord_bot(object):
                     await bot_helper.mock_message(message)
                 else:
                     await bot_helper.timeout_remove_user(message.author.name, verbose=False)
-            elif message.server.id == '173297475057090562' and message.channel.name == 'bryan2':
+            elif message.server.id == '400128509835739147' and message.channel.name == 'bryan':
                 await bot.process_commands(message)
             elif message.content.startswith('!twitch channel show'):
                 await bot.process_commands(message)
