@@ -6,6 +6,8 @@ from tinydb import TinyDB, Query
 from twitch_api import TwitchAPI
 from dateutil.parser import parse
 import yaml
+import random
+import math
 # debugging
 from IPython import embed as breakpoint
 
@@ -132,14 +134,69 @@ class BotHelper(object):
             })
             await self.bot_say('added `{}` to the list users timed out'.format(member.name))
 
-    async def timeout_remove_user(self):
-        pass
+    async def timeout_remove_user(self, user_name, verbose=True):
+        if user_name.lower() == 'all':
+            self.timeouts_table.purge()
+            if verbose:
+                await self.bot_say('removed all users from the timeout list')
+        elif self.timeouts_table.contains(Query().name == user_name):
+            self.timeouts_table.remove(Query().name == user_name)
+            if verbose:
+                await self.bot_say('removed `{}` from list of timed out users'.format(user_name))
+        else:
+            if verbose:
+                await self.bot_say('`{}` is not on the list of timed out users'.format(user_name))
 
     async def timeout_list_users(self):
         pass
 
+    async def mock_message(self, message):
+        await self.delete_message(message)
+
+        mention = message.author.mention
+        message_str = message.content
+
+        mock_message = '<:Spongemock:316250272802406400>{}<:Spongemock:316250272802406400>: {} *({} remaining)*'.format(mention, self.mockify(message_str), self.ban_time_remaining(message.author.id))
+
+        await self.bot_say(mock_message, channel=message.channel.id, expiration=False, trash=False)
+
     def timeout_check_user(self, user_id):
         return self.timeouts_table.contains(Query().id == user_id)
+
+    def mockify(self, message):
+        caps = bool(random.getrandbits(1))
+
+        mock_string = ''
+
+        for letter in message:
+            if caps:
+                mock_string += letter.upper()
+            else:
+                mock_string += letter.lower()
+
+            if letter.isalpha():
+                caps = not caps
+
+        return mock_string
+
+    def ban_time_remaining(self, user_id):
+        timeout_user = self.timeouts_table.search(Query().id == user_id)
+
+        if timeout_user:
+            timestamp = timeout_user[0].get('timestamp')
+
+            ban_time = datetime.datetime.strptime(timestamp, '%Y-%m-%d %H:%M:%S.%f')
+
+            time_diff = ban_time - datetime.datetime.utcnow()
+
+            mins = time_diff.total_seconds()/60
+            
+            if mins < 0:
+                return None
+            elif mins < 1:
+                return '<1 min'
+            else:
+                return '{} mins'.format(math.ceil(mins))
 
     """ """
 

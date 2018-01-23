@@ -50,11 +50,13 @@ class discord_bot(object):
         # filter messages
         @bot.event
         async def on_message(message):
-            if bot_helper.timeout_check_user(message.author.id):
-                bot_helper.bot_say("{} said something".format(message.author), channel='405048275301826561', trash=False)
-
             if message.content.startswith('!timeout') and message.author.server_permissions.administrator:
                 await bot.process_commands(message)
+            elif bot_helper.timeout_check_user(message.author.id):
+                if bot_helper.ban_time_remaining(message.author.id):
+                    await bot_helper.mock_message(message)
+                else:
+                    await bot_helper.timeout_remove_user(message.author.name, verbose=False)
             elif message.server.id == '173297475057090562' and message.channel.name == 'bryan2':
                 await bot.process_commands(message)
             elif message.content.startswith('!twitch channel show'):
@@ -131,8 +133,8 @@ class discord_bot(object):
 
         # !timeout remove <user_name>
         @timeout.command()
-        async def remove():
-            await bot_helper.timeout_remove_user()
+        async def remove(user_name):
+            await bot_helper.timeout_remove_user(user_name)
 
         # !timeout list
         @timeout.command()
